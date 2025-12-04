@@ -1,133 +1,262 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import styled from 'styled-components';
-import { FaSearch, FaChartBar, FaRobot, FaCog } from 'react-icons/fa';
-import Header from './components/Header';
-import SearchPage from './pages/SearchPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import AISearchPage from './pages/AISearchPage';
-import SimilarIssuesPage from './pages/SimilarIssuesPage';
-import SettingsPage from './pages/SettingsPage';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FaBug, FaMagic, FaSearch } from 'react-icons/fa';
+import './App.css';
 
-const AppContainer = styled.div`
-  min-height: 100vh;
-  background-color: #f5f7fa;
-`;
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
-const MainContent = styled.main`
-  padding: 20px;
-  margin-left: 250px;
-  margin-top: 80px;
+const promptTemplates = [
+  'Authentication fails when token is refreshed',
+  'Crash when switching tenants on the dashboard',
+  'Regression in push notification delivery timing',
+  'Incorrect permissions after role changes',
+];
 
-  @media (max-width: 768px) {
-    margin-left: 0;
-    margin-top: 140px;
-  }
-`;
+function StatBadge({ label, value }) {
+  return (
+    <div className="stat-badge">
+      <span className="stat-label">{label}</span>
+      <span className="stat-value">{value}</span>
+    </div>
+  );
+}
 
-const Sidebar = styled.nav`
-  position: fixed;
-  left: 0;
-  top: 80px;
-  width: 250px;
-  height: calc(100vh - 80px);
-  background-color: #2c3e50;
-  color: white;
-  padding: 20px 0;
-  overflow-y: auto;
-  z-index: 100;
+function IssueResult({ issue }) {
+  return (
+    <article className="issue-card">
+      <header className="issue-card__header">
+        <div>
+          <p className="issue-id">#{issue.issue_id}</p>
+          <h3 className="issue-title">{issue.summary || 'Untitled issue'}</h3>
+        </div>
+        <span className="issue-score">{Math.round((issue.score || issue.similarity || 0) * 100)}%</span>
+      </header>
 
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 60px;
-    top: 80px;
-    display: flex;
-    justify-content: space-around;
-  }
-`;
+      <p className="issue-description">{issue.description || 'No description provided.'}</p>
 
-const NavItem = styled.div`
-  padding: 15px 30px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  transition: background-color 0.3s;
+      {issue.bugnotes && (
+        <div className="issue-bugnotes">
+          <p className="label">Bugnotes focus</p>
+          <p>{issue.bugnotes}</p>
+        </div>
+      )}
 
-  &:hover {
-    background-color: #34495e;
-  }
-
-  ${({ active }) => active && `
-    background-color: #3498db;
-  `}
-
-  @media (max-width: 768px) {
-    padding: 10px;
-    flex-direction: column;
-    font-size: 12px;
-  }
-`;
+      <footer className="issue-footer">
+        <div className="chip-row">
+          {issue.status && <span className="chip">Status: {issue.status}</span>}
+          {issue.priority && <span className="chip">Priority: {issue.priority}</span>}
+          {issue.severity && <span className="chip">Severity: {issue.severity}</span>}
+          {issue.category && <span className="chip">Category: {issue.category}</span>}
+        </div>
+        {issue.url && (
+          <a href={issue.url} target="_blank" rel="noreferrer" className="link">
+            Open in Mantis
+          </a>
+        )}
+      </footer>
+    </article>
+  );
+}
 
 function App() {
-  const [activePage, setActivePage] = useState('search');
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
+  const [query, setQuery] = useState('');
+  const [issueAnchor, setIssueAnchor] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Load projects on mount
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    const mockProjects = [
-      { id: 'issues_49_FortiToken', name: 'FortiToken' },
-      { id: 'issues_FortiOS', name: 'FortiOS' },
-      { id: 'issues_FortiManager', name: 'FortiManager' }
-    ];
-    setProjects(mockProjects);
-    setSelectedProject(mockProjects[0]?.id || '');
+    let active = true;
+
+    const loadProjects = async () => {
+      if (typeof fetch !== 'function') {
+        setProjects([{ id: 'issues_sample', name: 'Sample project' }]);
+        setSelectedProject('issues_sample');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/projects`);
+        if (!response.ok) {
+          throw new Error('Unable to load projects');
+        }
+        const data = await response.json();
+        if (active) {
+          setProjects(data);
+          setSelectedProject(data[0]?.id || '');
+        }
+      } catch (err) {
+        console.error(err);
+        if (active) {
+          setProjects([{ id: 'issues_sample', name: 'Sample project' }]);
+          setSelectedProject('issues_sample');
+          setError('Falling back to sample project list.');
+        }
+      }
+    };
+
+    loadProjects();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const navItems = [
-    { id: 'search', label: 'Search', icon: <FaSearch /> },
-    { id: 'analytics', label: 'Analytics', icon: <FaChartBar /> },
-    { id: 'ai-search', label: 'AI Search', icon: <FaRobot /> },
-    { id: 'similar', label: 'Similar Issues', icon: <FaSearch /> },
-    { id: 'settings', label: 'Settings', icon: <FaCog /> }
-  ];
+  const activeProjectName = useMemo(
+    () => projects.find((p) => p.id === selectedProject)?.name || 'Project',
+    [projects, selectedProject]
+  );
+
+  const runSemanticSearch = async () => {
+    if (!query.trim() || !selectedProject) return;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE}/api/projects/${selectedProject}/semantic-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, top_k: 3 }),
+      });
+      if (!response.ok) {
+        throw new Error('Search request failed');
+      }
+      const data = await response.json();
+      setResults(data.results || []);
+    } catch (err) {
+      console.error(err);
+      setError('Unable to run AI search. Please verify the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runAnchorSearch = async () => {
+    if (!issueAnchor.trim() || !selectedProject) return;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/projects/${selectedProject}/issues/${issueAnchor}/similar?top_k=3`
+      );
+      if (!response.ok) {
+        throw new Error('Similar issue lookup failed');
+      }
+      const data = await response.json();
+      setResults(data.results || []);
+    } catch (err) {
+      console.error(err);
+      setError('Unable to fetch neighbors for that issue.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Router>
-      <AppContainer>
-        <Header
-          projects={projects}
-          selectedProject={selectedProject}
-          onSelectProject={setSelectedProject}
-        />
+    <div className="app-shell">
+      <header className="hero">
+        <div className="hero__brand">
+          <div className="logo">
+            <FaBug />
+          </div>
+          <div>
+            <p className="eyebrow">Mantis AI Copilot</p>
+            <h1>Find similar issues instantly</h1>
+            <p className="subtitle">
+              Semantic matching that emphasizes summary, description, and bugnotes to surface the closest
+              matches in your existing database.
+            </p>
+          </div>
+        </div>
 
-        <Sidebar>
-          {navItems.map(item => (
-            <NavItem
-              key={item.id}
-              active={activePage === item.id}
-              onClick={() => setActivePage(item.id)}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </NavItem>
-          ))}
-        </Sidebar>
+        <div className="hero__actions">
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="selector"
+          >
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+          <StatBadge label="Top-K" value="3" />
+          <StatBadge label="Focus" value="Summary/Description/Bugnotes" />
+        </div>
+      </header>
 
-        <MainContent>
-          <Routes>
-            <Route path="/" element={<SearchPage projectId={selectedProject} />} />
-            <Route path="/search" element={<SearchPage projectId={selectedProject} />} />
-            <Route path="/analytics" element={<AnalyticsPage projectId={selectedProject} />} />
-            <Route path="/ai-search" element={<AISearchPage projectId={selectedProject} />} />
-            <Route path="/similar/:issueId" element={<SimilarIssuesPage projectId={selectedProject} />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </MainContent>
-      </AppContainer>
-    </Router>
+      <main className="layout">
+        <section className="panel">
+          <div className="panel__header">
+            <div>
+              <p className="eyebrow">Semantic search</p>
+              <h2>Search {activeProjectName}</h2>
+            </div>
+            <div className="prompt-row">
+              <FaMagic />
+              <span>Use AI templates</span>
+            </div>
+          </div>
+
+          <textarea
+            className="input"
+            placeholder="Describe the issue you want to match, including symptoms and context..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+
+          <div className="prompt-chip-row">
+            {promptTemplates.map((prompt) => (
+              <button key={prompt} className="chip chip--ghost" onClick={() => setQuery(prompt)}>
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          <div className="actions-row">
+            <button className="btn" onClick={runSemanticSearch} disabled={loading}>
+              <FaMagic /> {loading ? 'Thinking...' : 'Search with AI'}
+            </button>
+
+            <div className="anchor-search">
+              <input
+                className="input anchor-input"
+                placeholder="Existing issue ID (e.g., 002341)"
+                value={issueAnchor}
+                onChange={(e) => setIssueAnchor(e.target.value)}
+              />
+              <button className="btn btn--ghost" onClick={runAnchorSearch} disabled={loading}>
+                <FaSearch /> Find similar to issue
+              </button>
+            </div>
+          </div>
+
+          {error && <div className="banner banner--warning">{error}</div>}
+        </section>
+
+        <section className="panel results-panel">
+          <div className="panel__header">
+            <div>
+              <p className="eyebrow">Results</p>
+              <h2>Top semantic matches</h2>
+            </div>
+            <span className="badge">k=3</span>
+          </div>
+
+          {loading && <div className="loader">Analyzing project knowledge…</div>}
+
+          {!loading && results.length === 0 && (
+            <div className="empty-state">
+              <FaMagic size={24} />
+              <p>Run a search to see the closest issues ranked by bugnotes and recency.</p>
+            </div>
+          )}
+
+          {!loading &&
+            results.map((issue) => <IssueResult key={`${issue.project_id}-${issue.issue_id}`} issue={issue} />)}
+        </section>
+      </main>
+    </div>
   );
 }
 
