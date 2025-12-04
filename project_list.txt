@@ -1,0 +1,81 @@
+All Mantis Projects (79 total)
+==================================================
+ 1. ID: 52  - Name: #1 FortiOS
+ 2. ID: 81  - Name: #2 FortiSwitch
+ 3. ID: 56  - Name: #3 FortiAnalyzer
+ 4. ID: 90  - Name: #4 FortiAP
+ 5. ID: 125 - Name: #5 FortiOS-6K7K
+ 6. ID: 60  - Name: #6 FortiManager
+ 7. ID: 78  - Name: #7 FortiMail
+ 8. ID: 39  - Name: #8 FortiWeb
+ 9. ID: 116 - Name: #9 FortiSandbox
+10. ID: 76  - Name: #10 FortiClient
+11. ID: 117 - Name: #11 FortiSIEM
+12. ID: 133 - Name: #12 FortiEDR
+13. ID: 96  - Name: #15 FortiAuthenticator
+14. ID: 37  - Name: #16 FortiGate Cloud
+15. ID: 123 - Name: #17 FortiNAC
+16. ID: 106 - Name: #18 FortiADC
+17. ID: 104 - Name: #19 FortiDDoS
+18. ID: 100 - Name: #20 FortiVoice
+19. ID: 136 - Name: #21 FortiExtender
+20. ID: 131 - Name: #23 FortiSOAR
+21. ID: 130 - Name: #26 FortiPortal
+22. ID: 122 - Name: #28 FNDN
+23. ID: 109 - Name: #31 FortiWAN
+24. ID: 152 - Name: #35 FortiCASB
+25. ID: 135 - Name: #40 FortiPresence
+26. ID: 129 - Name: #42 FortiCloud
+27. ID: 47  - Name: #44 FortiCare
+28. ID: 153 - Name: #49 FortiToken
+29. ID: 148 - Name: 0day Vuln Research
+30. ID: 73  - Name: AV Engine & sigs
+31. ID: 121 - Name: DevOps
+32. ID: 8   - Name: Documents
+33. ID: 124 - Name: Fabric Studio
+34. ID: 158 - Name: FIO
+35. ID: 157 - Name: FMG-FAZ Cloud
+36. ID: 149 - Name: Forensics
+37. ID: 139 - Name: FortiAIOps
+38. ID: 45  - Name: FortiASICs
+39. ID: 138 - Name: FortiCare BPS
+40. ID: 165 - Name: FortiCASB-SSPM
+41. ID: 166 - Name: FortiCNAPP
+42. ID: 128 - Name: FortiCNP
+43. ID: 134 - Name: FortiDAST
+44. ID: 144 - Name: FortiDevSec
+45. ID: 161 - Name: FortiDLP
+46. ID: 127 - Name: FortiEdge Cloud
+47. ID: 120 - Name: FortiGate Cloud Sandbox
+48. ID: 70  - Name: FortiGuard Services
+49. ID: 143 - Name: FortiGuest
+50. ID: 155 - Name: FortiIdeas
+51. ID: 146 - Name: FortiIdentity Cloud
+52. ID: 154 - Name: FortiMail Cloud
+53. ID: 137 - Name: FortiMonitor
+54. ID: 159 - Name: FortiNDR
+55. ID: 160 - Name: FortiNDRCloud
+56. ID: 151 - Name: Fortinet Website
+57. ID: 145 - Name: FortiPAM
+58. ID: 147 - Name: FortiRecon
+59. ID: 141 - Name: FortiSASE
+60. ID: 162 - Name: FortiSRA
+61. ID: 156 - Name: FortiSwitch-AX
+62. ID: 111 - Name: FortiSwitchDev
+63. ID: 118 - Name: FSA Engine & Rules
+64. ID: 25  - Name: Hardware
+65. ID: 38  - Name: IPS Engine & sigs
+66. ID: 91  - Name: Marketing
+67. ID: 112 - Name: Meru
+68. ID: 107 - Name: New Product
+69. ID: 101 - Name: NFR
+70. ID: 72  - Name: NPI
+71. ID: 142 - Name: NSE
+72. ID: 140 - Name: Outbreak Alerts
+73. ID: 163 - Name: Perception Point
+74. ID: 150 - Name: PM-Watchlist
+75. ID: 108 - Name: PSIRT
+76. ID: 65  - Name: Quality Control
+77. ID: 28  - Name: Special Branches
+78. ID: 105 - Name: Top-3
+79. ID: 164 - Name: Web Services

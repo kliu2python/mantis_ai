@@ -1,0 +1,15 @@
+# Lightweight Backend API Requirements
+
+# Web Framework
+Flask==2.3.2
+Flask-CORS==4.0.0
+
+# Database
+sqlite3  # Built into Python
+
+# Utilities
+python-dateutil==2.8.2
+regex==2023.6.3
+
+# Development
+python-dotenv==1.0.0
